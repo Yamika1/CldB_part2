@@ -1,0 +1,37 @@
+﻿@model CloudB_development_submission.Models.Order
+
+<div class="container py-4">
+    <h2 class="mb-3">Edit Customer</h2>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="PartitionKey" />
+        <input type="hidden" asp-for="RowKey" />
+
+        <div class="mb-3">
+            <label asp-for="OrderName" class="form-label"></label>
+            <input asp-for="OrderName" class="form-control" />
+            <span asp-validation-for="OrderName" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="DeliveryDate" class="form-label"></label>
+            <input asp-for="DeliveryDate" class="form-control" />
+            <span asp-validation-for="DeliveryDate" class="text-danger"></span>
+        </div>
+
+
+
+
+
+        <div class="mb-3">
+            <label for="file" class="form-label">Change Image</label>
+            <input type="file" name="file" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+
+

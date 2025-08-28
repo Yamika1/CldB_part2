@@ -1,0 +1,195 @@
+﻿@model IEnumerable<CloudB_development_submission.Models.Product>
+
+@{
+    ViewData["Title"] = "Shop";
+}
+
+<div class="container py-4">
+    <h1 class="mb-3">Clothes suggestions</h1>
+
+    <div class="row g-3">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var product in Model)
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100">
+                        <img src="@product.ImageURL" class="card-img-top" alt="@product.ProductName" />
+                        <div class="card-body">
+                            <h6 class="card-title">@product.ImageURL</h6>
+                            <div class="small text-muted">@product.Quantity</div>
+                            <div class="fw-bold mt-2">@product.ProductPrice?.ToString("C")</div>
+                            <div class="d-grid mt-2">
+                                <a asp-controller="Product" asp-action="AddProduct" asp-route-id="@product.RowKey" class="btn btn-sm btn-primary">Add to cart</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>No products available.</p>
+        }
+    </div>
+</div>
+
+<hr class="my-5" />
+
+<!-- ================= PRODUCT LIST ================= -->
+<div class="container py-4">
+    <h2 class="mb-3">Order Clothes section</h2>
+
+    @if (TempData["message"] != null)
+    {
+        <div class="alert alert-info">@TempData["message"]</div>
+    }
+
+    <p>
+        <a asp-action="AddProduct" class="btn btn-primary">Add New Product</a>
+    </p>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Type</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>
+                        @if (!string.IsNullOrEmpty(p.ImageURL))
+                        {
+                            <img src="@p.ImageURL" alt="product image" width="60" height="60" class="rounded-circle" />
+                        }
+                    </td>
+                    <td>@p.ProductName</td>
+                    <td>@p.Quantity</td>
+                    <td>@p.ProductType</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-partitionKey="@p.PartitionKey" asp-route-rowKey="@p.RowKey" class="btn btn-sm btn-warning">Edit</a>
+
+                        <form asp-action="Delete" method="post" style="display:inline;">
+                            <input type="hidden" name="partitionKey" value="@p.PartitionKey" />
+                            <input type="hidden" name="rowKey" value="@p.RowKey" />
+                            <input type="hidden" name="imageUrl" value="@p.ImageURL" />
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<hr class="my-5" />
+
+<!-- ================= FILE SHARE STORAGE ================= -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-secondary text-white">
+        File Share Storage
+    </div>
+    <div class="card-body">
+        <!-- display any messages -->
+        @if (TempData["message"] != null)
+        {
+            <div class="alert alert-info">@TempData["message"]</div>
+        }
+
+        <!-- upload file -->
+        <form asp-action="Upload" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Choose a file to upload:</label>
+                <input type="file" name="file" class="form-control" />
+                <button type="submit" class="btn btn-primary mt-2">Upload</button>
+            </div>
+        </form>
+
+        <!-- display uploaded files-->
+        @if (ViewBag.LocalFiles != null && ((List<FileModel>)ViewBag.LocalFiles).Count > 0)
+        {
+            <ul class="list-group mt-3">
+                @foreach (var file in (List<FileModel>)ViewBag.LocalFiles)
+                {
+                    <li class="list-group-item">
+                        @file.Name -
+                        Size: @file.DisplaySize -
+                        Last Modified: @file.LastModified?.ToString("g")
+                        - <a asp-action="DownloadedFile" asp-route-fileName="@file.Name">Download</a>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="fst-italic text-muted">No files found or model is null</p>
+        }
+    </div>
+</div>
+
+<!-- ================= BLOB STORAGE ================= -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+        Blob Storage
+    </div>
+    <div class="card-body">
+        <form asp-action="Upload" asp-controller="Product" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="uploadedFile" class="form-label">Select a file:</label>
+                <input type="file" name="uploadedFile" id="uploadedFile" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <h5 class="mt-4">Uploaded Blob Files</h5>
+        @if (ViewBag.BlobFiles != null && ((List<string>)ViewBag.BlobFiles).Count > 0)
+        {
+            <ul class="list-group">
+                @foreach (var imageurl in (List<string>)ViewBag.BlobFiles)
+                {
+                    <li class="list-group-item">
+                        <a asp-action="ViewFile" asp-controller="Product" asp-route-fileUrl="@imageurl" class="text-decoration-none">
+                            @System.IO.Path.GetFileName(imageurl)
+                        </a>
+                        - <span class="text-muted">@imageurl</span>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="fst-italic text-muted">No files found in Blob storage.</p>
+        }
+    </div>
+</div>
+
+<!-- ================= QUEUE ================= -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-success text-white">
+        Queue Messages
+    </div>
+    <div class="card-body">
+        <h5>Send a Message</h5>
+        @if (ViewBag.QueueMessages != null && ((List<string>)ViewBag.QueueMessages).Count > 0)
+        {
+            <ul>
+                @foreach (var msg in (List<string>)ViewBag.QueueMessages)
+                {
+                    <li>@msg</li>
+                }
+            </ul>
+        }
+        <form method="post" asp-action="Send">
+            <div class="input-group mt-2">
+                <input type="text" name="message" class="form-control" placeholder="Type a message..." />
+                <button type="submit" class="btn btn-success">Send</button>
+            </div>
+        </form>
+    </div>
+</div>
